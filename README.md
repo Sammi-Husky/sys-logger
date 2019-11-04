@@ -10,7 +10,7 @@ if a connection is terminated unexpectedly. A better client can easily be made a
 
 - Copy the contents of sdcard_out to the root of your SD card to install. 
 
-- Edit `sd:/syslog/syslog.ini` with your PC's ip address and the port of your client.
+- Edit `sd:/syslog/syslog.ini` with your PC's ip address and the port of your client. The included client port is 28280.
 
 - Included in the releases are header and implementation files for quickly getting your projects started. Simply copy them over and include the `logging.h` header file in your project.
 
