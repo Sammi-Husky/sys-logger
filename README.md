@@ -1,19 +1,20 @@
 # sys-logger
 Nintendo Switch sysmodule for logging over the LAN from within SaltyNX plugins.
 
-- Included is also header and implementation files for adding logging support to your projects. Bear in mind, one must still write the address of the variable to a text file in the SaltySD folder in order for the sysmodule to work. Below is an example snippet of saving the address to file. 
-
 ## Installation ##
 ```
 NOTE:
-This release includes a basic client to receive messages on, but will misbehave if a connection is terminated unexpectedly. A better client can easily be made and used.
+This release includes a basic client to receive messages on, but will misbehave
+if a connection is terminated unexpectedly. A better client can easily be made and used.
 ```
 
 - Copy the contents of sdcard_out to the root of your SD card to install. 
 
 - Edit `sd:/syslog/syslog.ini` with your PC's ip address and the port of your client.
 
-- Include the `logging.h` header file (provided in releases) in your project and place this somewhere in your plugin's `main` function to get started.
+- Included in the releases are header and implementation files for quickly getting your projects started. Simply copy them over and include the `logging.h` header file in your project.
+
+- Currently the sysmodule reads the plugin variable address from a file. This file must be created from your plugin. Place this somewhere in your plugin's `main` function.
 
 ```c++
 FILE* f = SaltySDCore_fopen("sdmc:/SaltySD/syslog.conf", "w");
