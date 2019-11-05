@@ -1,15 +1,8 @@
 #include <switch.h>
 
-#include <string>
-#include <queue>
 #include <dirent.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <stdarg.h>
-#include <sys/socket.h>
 #include <arpa/inet.h>
-#include <sys/errno.h>
-#include <unistd.h>
 
 #include "useful.h"
 #include "syslogger.h"
