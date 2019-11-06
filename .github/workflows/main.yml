@@ -11,6 +11,9 @@ jobs:
     env:
       DEVKITPRO: /opt/devkitpro
     steps:
+    - name: Checkout Master
+      uses: actions/checkout@v1
+      
     - name: Download DEVKITPRO
       run: wget https://github.com/devkitPro/pacman/releases/download/devkitpro-pacman-1.0.1/devkitpro-pacman.deb
       
