@@ -20,9 +20,6 @@ jobs:
     - name: Install dkp-pacman
       run: printf "\nY" | sudo dkp-pacman -S switch-dev switch-freetype
       
-    - name: Clean
-      run: make clean
-    
     - name: Make
       run: make
       
