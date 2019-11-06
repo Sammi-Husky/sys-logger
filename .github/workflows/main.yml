@@ -68,5 +68,5 @@ jobs:
         body: Canary build of sys-logger. Updated each time a commit is pushed to master
         gzip: false
         files: sys-logger.zip
-        name: \[Canary\] sys-logger
+        name: sys-logger - Canary
         allow_override: true
