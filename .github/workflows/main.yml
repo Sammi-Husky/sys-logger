@@ -36,6 +36,7 @@ jobs:
         tag: canary
         body: >
           Canary build of sys-logger. Updated each time a commit is pushed to `master`
+        gzip: false
         files: sys-logger.zip
         allow_override: true
         name: >
