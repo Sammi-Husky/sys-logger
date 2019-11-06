@@ -29,6 +29,37 @@ jobs:
     - name: ZIP Release
       run: zip -r sys-logger.zip sdcard_out pctools/client.py
       
+      
+    - name: Master Release Information
+      uses: octokit/request-action@v1.x
+      id: get_master_release_upload
+      with:
+        route: GET /repos/:owner/:repo/releases/tags/:tag
+        owner: Sammi-Husky
+        repo: sys-logger
+        tag: master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Parse Release URL
+      id: parse_upload_url
+      uses: gr2m/get-json-paths-action@v1.x
+      with:
+        json: ${{ steps.get_master_release_upload.outputs.data }}
+        id: "id"
+        
+    - name: Delete Release
+      id: delete-release 
+      uses: octokit/request-action@v1.x
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        route: DELETE /repos/:owner/:repo/releases/:release_id
+        release_id: ${{ steps.parse_upload_url.outputs.id }}
+        repo: sys-logger
+        owner: Sammi-Husky
+      
+      
     - name: Upload Release
       uses: meeDamian/github-release@v1.0.1
       with:
@@ -38,6 +69,5 @@ jobs:
           Canary build of sys-logger. Updated each time a commit is pushed to `master`
         gzip: false
         files: sys-logger.zip
-        allow_override: true
         name: >
           [Canary] sys-logger
