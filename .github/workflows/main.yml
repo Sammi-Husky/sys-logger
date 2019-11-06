@@ -1,0 +1,61 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: 
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DEVKITPRO: /opt/devkitpro
+    steps:
+    - name: Download DEVKITPRO
+      run: wget https://github.com/devkitPro/pacman/releases/download/devkitpro-pacman-1.0.1/devkitpro-pacman.deb
+      
+    - name: Install DEVKITPRO
+      run: sudo dpkg -i devkitpro-pacman.deb
+      
+    - name: Install dkp-pacman
+      run: printf "\nY" | sudo dkp-pacman -S switch-dev switch-freetype
+      
+    - name: Clean
+      run: make clean
+    
+    - name: Make
+      run: make
+      
+    - name: ZIP Release
+      run: zip -r sys-logger.zip sdcard_out pctools/client.py
+    
+    - name: Master Release Information
+      uses: octokit/request-action@v1.x
+      id: get_master_release_upload
+      with:
+        route: GET /repos/:owner/:repo/releases/tags/:tag
+        body: Canary Build of sys-logger. Updated each time a commit is pushed to master.
+        name: \[Canary\] sys-logger \- $GITHUB_SHA
+        owner: Sammi-Husky
+        repo: sys-logger
+        tag: canary
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Parse Release URL
+      id: parse_upload_url
+      uses: gr2m/get-json-paths-action@v1.x
+      with:
+        json: ${{ steps.get_master_release_upload.outputs.data }}
+        id: "upload_url"
+    
+    - name: Upload Release ZIP
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.parse_upload_url.outputs.id }}
+        asset_path: ./sys-logger.zip
+        asset_name: sys-logger.zip
+        asset_content_type: application/zip
