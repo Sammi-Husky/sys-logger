@@ -60,6 +60,8 @@ jobs:
         
     - name: Update Release Info
       uses: octokit/request-action@v1.x
+      env: 
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         route: POST /repos/:owner/:repo/releases
         owner: Sammi-Husky
@@ -67,5 +69,3 @@ jobs:
         tag_name: canary
         name: \[Canary\] sys-logger - $GITHUB_SHA
         body: Canary build of sys-logger. Updated each time a commit is pushed to master
-      env: 
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
