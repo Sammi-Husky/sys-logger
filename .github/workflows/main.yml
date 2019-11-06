@@ -67,4 +67,5 @@ jobs:
         tag_name: canary
         name: \[Canary\] sys-logger - $GITHUB_SHA
         body: Canary build of sys-logger. Updated each time a commit is pushed to master
-      env: GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      env: 
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
