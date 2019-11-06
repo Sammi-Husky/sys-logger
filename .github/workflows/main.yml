@@ -21,7 +21,7 @@ jobs:
       run: printf "\nY" | sudo dkp-pacman -S switch-dev switch-freetype
       
     - name: Make
-      run: make
+      run: make sys-log.nsp
       
     - name: ZIP Release
       run: zip -r sys-logger.zip sdcard_out pctools/client.py
