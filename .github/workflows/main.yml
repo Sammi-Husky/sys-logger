@@ -28,44 +28,15 @@ jobs:
       
     - name: ZIP Release
       run: zip -r sys-logger.zip sdcard_out pctools/client.py
-    
-    - name: Master Release Information
-      uses: octokit/request-action@v1.x
-      id: get_master_release_upload
+      
+    - name: Upload Release
+      uses: meeDamian/github-release@v1.0.1
       with:
-        route: GET /repos/:owner/:repo/releases/tags/:tag
-        owner: Sammi-Husky
-        repo: sys-logger
+        token: ${{ secrets.GITHUB_TOKEN }}
         tag: canary
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
-    - name: Parse Release URL
-      id: parse_upload_url
-      uses: gr2m/get-json-paths-action@v1.x
-      with:
-        json: ${{ steps.get_master_release_upload.outputs.data }}
-        id: "upload_url"
-    
-    - name: Upload Release ZIP
-      id: upload-release-asset 
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.parse_upload_url.outputs.id }}
-        asset_path: ./sys-logger.zip
-        asset_name: sys-logger.zip
-        asset_content_type: application/zip
-        
-    - name: Update Release Info
-      uses: octokit/request-action@v1.x
-      env: 
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        route: POST /repos/:owner/:repo/releases
-        owner: Sammi-Husky
-        repp: sys-logger
-        tag_name: canary
-        name: \[Canary\] sys-logger - $GITHUB_SHA
-        body: Canary build of sys-logger. Updated each time a commit is pushed to master
+        body: >
+          Canary build of sys-logger. Updated each time a commit is pushed to `master`
+        files: sys-logger.zip
+        allow_override: true
+        name: >
+          [Canary] sys-logger
