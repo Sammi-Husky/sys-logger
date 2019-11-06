@@ -34,8 +34,6 @@ jobs:
       id: get_master_release_upload
       with:
         route: GET /repos/:owner/:repo/releases/tags/:tag
-        body: Canary Build of sys-logger. Updated each time a commit is pushed to master.
-        name: \[Canary\] sys-logger \- $GITHUB_SHA
         owner: Sammi-Husky
         repo: sys-logger
         tag: canary
@@ -59,3 +57,14 @@ jobs:
         asset_path: ./sys-logger.zip
         asset_name: sys-logger.zip
         asset_content_type: application/zip
+        
+    - name: Update Release Info
+      uses: octokit/request-action@v1.x
+      with:
+        route: POST /repos/:owner/:repo/releases
+        owner: Sammi-Husky
+        repp: sys-logger
+        tag_name: canary
+        name: \[Canary\] sys-logger - $GITHUB_SHA
+        body: Canary build of sys-logger. Updated each time a commit is pushed to master
+      env: GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
