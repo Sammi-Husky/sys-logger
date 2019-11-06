@@ -37,7 +37,7 @@ jobs:
         route: GET /repos/:owner/:repo/releases/tags/:tag
         owner: Sammi-Husky
         repo: sys-logger
-        tag: master
+        tag: canary
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
