@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
     debug_log("Sockets: Attempting to connect to server %s:%d\n", ipaddress, port);
     while (!connected)
     {
-        connected = syslogger_connect(inet_addr(ipaddress), htons(port)) != -1;
+        connected = syslogger_init() != -1;
         svcSleepThread(10000000L);
     }
     debug_log("Sockets: Successfully connected!\n");

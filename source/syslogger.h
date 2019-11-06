@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-extern int syslogger_connect(in_addr_t address, uint16_t port);
+extern int syslogger_init(void);
 extern int syslogger_send(const char* format, ...);
 
 #ifdef __cplusplus
