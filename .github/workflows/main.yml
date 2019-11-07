@@ -1,0 +1,72 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: 
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DEVKITPRO: /opt/devkitpro
+    steps:
+    - name: Checkout Master
+      uses: actions/checkout@v1
+      
+    - name: Download DEVKITPRO
+      run: wget https://github.com/devkitPro/pacman/releases/download/devkitpro-pacman-1.0.1/devkitpro-pacman.deb
+      
+    - name: Install DEVKITPRO
+      run: sudo dpkg -i devkitpro-pacman.deb
+      
+    - name: Install dkp-pacman
+      run: printf "\nY" | sudo dkp-pacman -S switch-dev switch-freetype
+      
+    - name: Make
+      run: make
+      
+    - name: ZIP Release
+      run: zip -r sys-logger.zip sdcard_out pctools/client.py
+      
+      
+    - name: Master Release Information
+      uses: octokit/request-action@v1.x
+      id: get_master_release_upload
+      with:
+        route: GET /repos/:owner/:repo/releases/tags/:tag
+        owner: Sammi-Husky
+        repo: sys-logger
+        tag: canary
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Parse Release URL
+      id: parse_upload_url
+      uses: gr2m/get-json-paths-action@v1.x
+      with:
+        json: ${{ steps.get_master_release_upload.outputs.data }}
+        id: "id"
+        
+    - name: Delete Release
+      id: delete-release 
+      uses: octokit/request-action@v1.x
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        route: DELETE /repos/:owner/:repo/releases/:release_id
+        release_id: ${{ steps.parse_upload_url.outputs.id }}
+        repo: sys-logger
+        owner: Sammi-Husky
+      
+      
+    - name: Upload Release
+      uses: meeDamian/github-release@v1.0.1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: canary
+        body: Canary build of sys-logger. Updated each time a commit is pushed to master
+        gzip: false
+        files: sys-logger.zip
+        name: sys-logger - Canary
+        allow_override: true
