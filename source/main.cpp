@@ -179,13 +179,14 @@ int main(int argc, char *argv[])
         if (pid_invalid)
         {
             // Blocks until specified title is launched
-            syslogger_send("Waiting for smash to launch..\n");
+            syslogger_send("Waiting for smash to launch..");
             waitApplicationLaunch(&pid, 0x01006A800016E000);
 
             // Wait until plugin gives up it's secrets
-            syslogger_send("Waiting for plugin config..\n");
+            syslogger_send("Waiting for plugin config..");
             plugin_log_addr = waitPluginConfig();
-
+            
+            syslogger_send("Success! Plugin log is at %llx",plugin_log_addr);
             pid_invalid = false;
         }
 
@@ -199,7 +200,7 @@ int main(int argc, char *argv[])
             // read plugin variable
             rc = svcReadDebugProcessMemory(&logger, debug, (u64)plugin_log_addr, sizeof(logger));
             if ((pid_invalid = R_FAILED(rc)))
-                syslogger_send("Failed to read memory, retcode %llx\n", R_VALUE(rc));
+                syslogger_send("Failed to read memory, retcode %llx", R_VALUE(rc));
 
             // If the packet is dirty we know a new message is waiting for us.
             // Subsequent calls from plugin will block until we tell it that
@@ -208,14 +209,14 @@ int main(int argc, char *argv[])
             {
                 syslogger_send(logger.buffer);
                 if (logger.to_sd)
-                    debug_log("Plugin: %s", logger.buffer);
+                    debug_log("Plugin: %s\n", logger.buffer);
                 logger.dirty = false;
             }
 
             // write changes back to plugin
             rc = svcWriteDebugProcessMemory(debug, &logger, plugin_log_addr, sizeof(logger));
             if ((pid_invalid = R_FAILED(rc)))
-                syslogger_send("Failed to write memory, retcode %llx\n", R_VALUE(rc));
+                syslogger_send("Failed to write memory, retcode %llx", R_VALUE(rc));
         }
         // must be closed, even if debugging failed
         svcCloseHandle(debug);

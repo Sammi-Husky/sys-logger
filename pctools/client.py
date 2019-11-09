@@ -48,8 +48,8 @@ if __name__ == "__main__":
                 connected = False
             if len(ready_to_read) > 0:
                 data = sock.recvfrom(bufferSize)
-                print(data[0].decode('utf-8').rstrip())
+                print(data[0].decode('utf-8'))
                 if args.output != None:
-                    f.write(data[0].decode('utf-8'))
+                    f.write(data[0].decode('utf-8') + '\n')
     if args.output != None:
         f.close()
