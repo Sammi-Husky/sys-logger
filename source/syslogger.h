@@ -1,15 +1,13 @@
 #ifndef SYSLOGGER_H
 #define SYSLOGGER_H
 
-#include <switch.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern int syslogger_init(void);
-extern int syslogger_send(const char* format, ...);
-
+int syslogger_init(void);
+int syslogger_send(const char* format, ...);
+int syslogger_listen();
 #ifdef __cplusplus
 }
 #endif

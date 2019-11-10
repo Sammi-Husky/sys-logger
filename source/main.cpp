@@ -1,12 +1,12 @@
 #include <switch.h>
 
+#include <string>
 #include <dirent.h>
 #include <stdarg.h>
 #include <arpa/inet.h>
 
 #include "useful.h"
 #include "syslogger.h"
-#include "minIni.h"
 
 extern "C"
 {
@@ -20,17 +20,6 @@ extern "C"
 }
 
 u32 __nx_applet_type = AppletType_None;
-
-char ipaddress[100];
-u64 port;
-
-struct LogPacket
-{
-    bool dirty = false;
-    bool to_sd = false;
-    char buffer[256];
-};
-
 void __libnx_initheap(void)
 {
     extern char *fake_heap_start;
@@ -42,49 +31,32 @@ void __libnx_initheap(void)
 
 void __appInit(void)
 {
-    smInitialize();
+    Result rc = smInitialize();
+    if (R_FAILED(rc))
+        fatalSimple(rc);
 
     // Wait for SD card to be online
     svcSleepThread(1 * 1000 * 1000 * 1000);
-    debug_log("Init: Waiting for SD card..\n");
     for (int i = 0; i < 7; i++)
     {
         svcSleepThread(1 * 1000 * 1000 * 1000);
     }
 
-    // init fs stuff
-    fsInitialize();
-    fsdevMountSdmc();
-
-    mkdir("sdmc:/syslog", 0700);
-    unlink("sdmc:/syslog/syslog.log");
-    unlink("sdmc:/SaltySD/syslog.conf");
-
-    debug_log("Init: Reading ini file..\n");
-    ini_gets("Network", "pcip", "0.0.0.0", ipaddress, sizearray(ipaddress), "sdmc:/syslog/syslog.ini");
-    port = ini_getl("Network", "port", 28280, "sdmc:/syslog/syslog.ini");
-
-    // init sockets
-    debug_log("Init: Initializing Socket Driver..\n");
-    Result rc = socketInitializeDefault();
+    rc = fsInitialize();
     if (R_FAILED(rc))
-    {
-        debug_log("Init: Socket Driver failed to initialize\n");
-    }
-
+        fatalSimple(rc);
+    rc = fsdevMountSdmc();
+    if (R_FAILED(rc))
+        fatalSimple(rc);
     rc = pmdmntInitialize();
     if (R_FAILED(rc))
-    {
         fatalSimple(rc);
-    }
-
-    // need this to get applicationid
     rc = pminfoInitialize();
     if (R_FAILED(rc))
         fatalSimple(rc);
-
-    debug_log("Init: Trying to set HOS version\n");
-    // setting hos version because apparently it changes some functions
+    rc = socketInitializeDefault();
+    if (R_FAILED(rc))
+        fatalSimple(rc);
     rc = setsysInitialize();
     if (R_SUCCEEDED(rc))
     {
@@ -94,7 +66,10 @@ void __appInit(void)
             hosversionSet(MAKEHOSVERSION(fw.major, fw.minor, fw.micro));
         setsysExit();
     }
-    debug_log("Init: Success!\n");
+
+    mkdir("sdmc:/syslog", 0700);
+    unlink("sdmc:/syslog/syslog.log");
+    unlink("sdmc:/SaltySD/syslog.conf");
 }
 
 void __appExit(void)
@@ -134,7 +109,7 @@ Result waitApplicationLaunch(u64 *pid_out, u64 titleID)
 u64 waitPluginConfig()
 {
     u64 addr = 0;
-    for (int i=0;i<300;i++)
+    for (int i = 0; i < 300; i++)
     {
         char buffer[100];
         FILE *f = fopen("sdmc:/SaltySD/syslog.conf", "r");
@@ -149,28 +124,39 @@ u64 waitPluginConfig()
     }
     return addr;
 }
+
 int main(int argc, char *argv[])
 {
+    u32 ip;
+    debug_log("Sockets: Waiting For Network..\n");
+    while (!ip)
+    {
+        nifmGetCurrentIpAddress(&ip);
+        svcSleepThread(10000000L);
+    }
+    debug_log("Sockets: Connected to network\n");
+
+    if(syslogger_init())
+        debug_log("%Syslogger: Failed to init\n");
+
+    if(syslogger_listen())
+        debug_log("Syslogger: Couldn't find clients\n");
+
     u64 plugin_log_addr = 0;
-    bool connected = false;
     bool pid_invalid = true;
     Handle debug;
     Result rc;
     u64 pid;
 
-    // TODO broadcast UDP packets instead of binding to specific client.
-    // This would fix issues with reconnecting as well
-    debug_log("Sockets: Attempting to connect to server %s:%d\n", ipaddress, port);
-    while (!connected)
+    struct LogPacket
     {
-        connected = syslogger_init() != -1;
-        svcSleepThread(10000000L);
-    }
-    debug_log("Sockets: Successfully connected!\n");
+        bool dirty = false;
+        bool to_sd = false;
+        char buffer[256];
+    } logger;
 
     // Main loop.
     // Checks if plugin packet is dirty and broadcasts message to client
-    LogPacket logger;
     while (appletMainLoop())
     {
         svcSleepThread(10000000L);
@@ -185,8 +171,8 @@ int main(int argc, char *argv[])
             // Wait until plugin gives up it's secrets
             syslogger_send("Waiting for plugin config..");
             plugin_log_addr = waitPluginConfig();
-            
-            syslogger_send("Success! Plugin log is at %llx",plugin_log_addr);
+
+            syslogger_send("Success! Plugin log is at %llx", plugin_log_addr);
             pid_invalid = false;
         }
 
@@ -221,6 +207,5 @@ int main(int argc, char *argv[])
         // must be closed, even if debugging failed
         svcCloseHandle(debug);
     }
-
     debug_log("Main: Goodbye\n");
 }

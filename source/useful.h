@@ -1,10 +1,8 @@
 #ifndef USEFUL_H
 #define USEFUL_H
 
-#include <switch.h>
 #include <string.h>
-#include <stdio.h>
-#include <stdarg.h>
+
 
 #define LINKABLE __attribute__ ((weak))
 #define sizearray(a)  (sizeof(a) / sizeof((a)[0]))
